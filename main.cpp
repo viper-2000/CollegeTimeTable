@@ -10,9 +10,12 @@ class Course {
     public:
         // Course() = default;
         Course(string course, string coursen, string icn, string dept) : course_code{course}, course_name{coursen}, IC_name{icn}, department_name{dept}{};
+        string getCourseCode(){
+            return this->course_code;
+        }
 };
 
-class Lecture_Class : protected Course{
+class Lecture_Class : public Course{
     int section_number;
     string Instructor;
     int total_enrollment;
@@ -66,7 +69,7 @@ int main(){
         if(choice == 1){
             // Admin
             int x;
-            cout << "Input Choice of task:\n" << "0: Add Student\n1: Add Classes\n2: Display Students\n3: Display Classes" << endl;
+            cout << "Input Choice of task:\n" << "0: Add Student\n1: Add Classes\n2: Display Students\n3: Display Classes\n4: Delete Class\n5: Delete Student" << endl;
             cin >> x;
             switch (x) {
                 case 0:{
@@ -100,6 +103,16 @@ int main(){
                 case 3:
                     for(auto i : admin_classes){
                         cout << i << endl << "-----------------------------" << endl;
+                    }
+                    break;
+                case 4:
+                    cout << "Enter Course Code\n";
+                    string s;
+                    cin >> s;
+                    for(auto i = admin_classes.begin();i != admin_classes.end(); i++){
+                        if(i->getCourseCode() == s){
+                            admin_classes.erase(i);
+                        }
                     }
                     break;
                 
