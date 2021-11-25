@@ -26,7 +26,30 @@ class Lecture_Class : public Course{
     public:
         Lecture_Class() = default;
         Lecture_Class(int sn, string instr, int te, int ts, string d, int dr, string cc, string cn, string icn, string dept) : Course(cc, cn, icn, dept), section_number{sn}, Instructor{instr}, total_enrollment{te}, current_enrollment{0}, time_slot{ts}, days{d}, duration{dr} {}
-        void Insert_Class();
+        string getCourseCode(){
+            return course_code;
+        }
+        int getCurrentEnrollment(){
+            return current_enrollment;
+        }
+        bool updateEnrollment(int val){
+            if(current_enrollment + val <= total_enrollment){
+                current_enrollment -= val;
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        bool isAvailable(){
+            return (current_enrollment < total_enrollment);
+        }
+        int totalEnrollment(){
+            return total_enrollment;
+        }
+        int getSectionNumber(){
+            return section_number;
+        }
         friend ostream& operator<< (ostream &out, Lecture_Class const& data){
             out << "Course Code->"<< data.course_code << "\nCourse Name->"<<data.course_name<<"\nIC Name->"<< data.IC_name <<"\nDept->"<<data.department_name;
             out << "\nSection no.->"<< data.section_number<<"\nInstructor Name->"<<data.Instructor<<"\nTotal Enrollment->"<<data.total_enrollment<<"\nCurrent Enrollment->"<<data.current_enrollment<<"\nTime Slot->"<<data.time_slot;
@@ -37,12 +60,30 @@ class Lecture_Class : public Course{
 class Student {
     string name;
     string id;
-    vector<Lecture_Class> class_taken;
+    deque<Lecture_Class> class_taken;
+    unordered_set<string> mp;
     public:
         Student() = default;
         Student(string nm, string i) : name{nm}, id{i} {};
-        bool Add_Class(){
-
+        string getId(){
+            return id;
+        }
+        void displayMyClasses(){
+            for(auto i : class_taken){
+                cout << i << "\n-----------------------------------------\n";
+            }
+        }
+        bool Add_Class(Lecture_Class l){
+            if(mp.find(l.getCourseCode()) == mp.end()){
+                class_taken.push_back(l);
+                mp.insert(l.getCourseCode());
+                return true;
+            }
+            else{
+                cout << "Class could not be registered\n";
+                return false;
+            }
+            
         }
         bool delete_Class(){
 
@@ -60,8 +101,8 @@ class Student {
         }
 };
 int main(){
-    vector<Lecture_Class> admin_classes;
-    vector<Student> students;
+    deque<Lecture_Class> admin_classes;
+    deque<Student> students;
     while(true){
         int choice;
         cout << "Input 1 for Admin, 0 for student, -1 to exit" << endl;
@@ -78,7 +119,7 @@ int main(){
                     string temp;
                     cin >> name;
                     cin >> temp;
-                    name += temp;
+                    name = name + " " + temp;
                     cin >> id;
                     Student s{name, id};
                     students.push_back(s);
@@ -96,6 +137,10 @@ int main(){
                     break;
                 }
                 case 2:
+                    if(students.empty()){
+                        cout << "Students list is empty\n";
+                        break;
+                    }
                     for(auto i : students){
                         cout << i << endl << "----------------------------" << endl;
                     }
@@ -105,16 +150,50 @@ int main(){
                         cout << i << endl << "-----------------------------" << endl;
                     }
                     break;
-                case 4:
+                case 4:{
                     cout << "Enter Course Code\n";
                     string s;
+                    bool flag = false;
                     cin >> s;
                     for(auto i = admin_classes.begin();i != admin_classes.end(); i++){
                         if(i->getCourseCode() == s){
+                            flag = true;
                             admin_classes.erase(i);
+                            break;
                         }
                     }
+                    if(flag == false) cout << "No such entry found\n";
                     break;
+                }
+                case 5:{
+                    cout << "Enter Student ID\n";
+                    string s;
+                    cin >> s;
+                    bool flag = false;
+                    if(students.size() == 0){
+                        cout << "No students to delete\n";
+                        break;
+                    }
+                    if(students.size() == 1){
+                        if(students.begin()->getId() == s){
+                            students.clear();
+                        }
+                        else{
+                            cout << "No such entry found\n";
+                        }
+                        break;
+                    }
+
+                    for(auto i = students.begin(); i != students.end(); i++){
+                        if(i->getId() == s){
+                            flag = true;
+                            students.erase(i);
+                            break;
+                        }
+                    }
+                    if(flag == false) cout << "No such entry found\n";
+                    break;
+                }
                 
                 default:
                     cout << "Invalid Choice" << endl;
@@ -123,6 +202,63 @@ int main(){
         }
         else if(choice == 0){
             // Student
+            cout << "Enter ID No.\n";
+            string id;
+            cin >> id;
+            bool flag = false;
+            Student current;
+            for(auto i = students.begin(); i!=students.end(); i++){
+                if(i->getId() == id){
+                    flag = true;
+                    current = *i;
+                    break;
+                }
+            }
+            if(flag == false){
+                cout << "No such entry found\n";
+                break;
+            }
+            cout << "Input Choice\n0: Add Class\n1: Delete Class\n2: Display my Classes";
+            int x;
+            cin >> x;
+            switch(x){
+                case 0:{
+                    cout << "Enter Course Code and Section no.\n";
+                    string courseCode;
+                    int sectionNumber;
+                    cin >> courseCode;
+                    cin >> sectionNumber;
+                    bool flag = false;
+                    for(auto i=admin_classes.begin(); i!=admin_classes.end(); i++){
+                        if(i->getCourseCode() == courseCode && i->getSectionNumber() == sectionNumber){
+                            flag = true;
+                            if(i->isAvailable()){
+                                current.Add_Class(*i);
+                                i->updateEnrollment(-1);
+                            }
+                            else{
+                                cout << "Class Enrollment is full\n";
+                            }
+                            
+                            // alter enrollment of class
+                            break;
+                        }
+                    }
+                    if(flag == false){
+                        cout << "No such entry found\n";
+                        break;
+                    } 
+                    break;
+                }
+                case 1:
+                    break;
+                case 2:
+                    current.displayMyClasses();
+                    break;
+                default:
+                    cout << "Invalid Choice\n";
+                    break;
+            }
         }
         else if(choice == -1){
             break;
