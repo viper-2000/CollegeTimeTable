@@ -85,8 +85,16 @@ class Student {
             }
             
         }
-        bool delete_Class(){
-
+        bool delete_Class(Lecture_Class l){
+            if(mp.find(l.getCourseCode()) == mp.end()){
+                class_taken.erase(l);
+                mp.erase(l.getCourseCode());
+                return true;
+            }
+            else{
+                cout << "Class could not be deleted\n";
+                return false;
+            }
         }
         bool verify_TimeTable(){
 
